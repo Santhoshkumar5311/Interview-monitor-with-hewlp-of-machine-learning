@@ -13,3 +13,8 @@ flask==2.3.3
 flask-cors==4.0.0
 python-dotenv==1.0.0
 opencv-python-headless==4.8.1.78
+textblob==0.17.1
+nltk==3.8.1
+librosa==0.10.1
+soundfile==0.12.1
+scipy==1.11.1

@@ -6,7 +6,7 @@ Analyzes facial landmarks to detect expressions and emotions
 import numpy as np
 from typing import Dict, List, Tuple, Optional
 import logging
-from landmark_detector import FacialLandmarkDetector
+from .landmark_detector import FacialLandmarkDetector
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
