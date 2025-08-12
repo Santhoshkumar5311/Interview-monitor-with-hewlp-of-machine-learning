@@ -82,6 +82,29 @@ class VideoCapture:
             logger.error(f"Error reading frame: {str(e)}")
             return None
     
+    def read(self) -> Tuple[bool, Optional[np.ndarray]]:
+        """
+        Read a frame from the camera (compatible with OpenCV VideoCapture)
+        
+        Returns:
+            Tuple[bool, Optional[np.ndarray]]: (success, frame) where success is True if frame was read successfully
+        """
+        if not self.is_initialized or self.cap is None:
+            logger.warning("Video capture not initialized")
+            return False, None
+        
+        try:
+            ret, frame = self.cap.read()
+            if ret:
+                return True, frame
+            else:
+                logger.warning("Failed to read frame from camera")
+                return False, None
+                
+        except Exception as e:
+            logger.error(f"Error reading frame: {str(e)}")
+            return False, None
+    
     def get_frame_info(self) -> Tuple[int, int, float]:
         """
         Get current frame information

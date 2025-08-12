@@ -12,13 +12,13 @@ from typing import Dict, List, Optional, Tuple
 import os
 import sys
 
-# Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+# Add src to path for relative imports
+sys.path.append(os.path.dirname(__file__))
 
 from facial_detection.video_capture import VideoCapture
 from facial_detection.landmark_detector import FacialLandmarkDetector
 from facial_detection.expression_analyzer import ExpressionAnalyzer
-from confidence_analysis.confidence_classifier import ConfidenceClassifier
+from confidence_analysis.confidence_classifier import ConfidenceClassifier, ConfidenceMetrics
 from confidence_analysis.sentiment_analyzer import SentimentAnalyzer
 from confidence_analysis.speech_analyzer import SpeechAnalyzer
 from transcription.speech_transcriber import SpeechTranscriber
@@ -79,6 +79,8 @@ class InterviewMonitor:
         try:
             # 1. Video capture
             self.video_capture = VideoCapture()
+            if not self.video_capture.initialize():
+                raise Exception("Failed to initialize video capture")
             logger.info("✓ Video capture initialized")
             
             # 2. Facial landmark detection
@@ -228,15 +230,15 @@ class InterviewMonitor:
                     confidence_metrics = self._analyze_confidence(expressions, landmarks)
                     self.current_confidence = confidence_metrics
                 
-                # 4. Draw landmarks and expressions
-                frame = self.landmark_detector.draw_landmarks(frame, landmarks)
-                frame = self._draw_expression_info(frame, expressions)
+                # 4. Landmarks and expressions are processed but not displayed (clean view)
+                # frame = self.landmark_detector.draw_landmarks(frame, landmarks)  # Hidden
+                # frame = self._draw_expression_info(frame, expressions)  # Hidden
                 
-                # 5. Draw confidence info (if enabled and shown)
-                if self.enable_confidence_analysis and hasattr(self, 'show_confidence'):
-                    frame = self._draw_confidence_info(frame, confidence_metrics)
+                # 5. Confidence is processed but not displayed in corners (will be shown in bottom box)
+                # if self.enable_confidence_analysis and hasattr(self, 'show_confidence'):
+                #     frame = self._draw_confidence_info(frame, confidence_metrics)  # Hidden
             
-            # 6. Render subtitles
+            # 6. Render live captions (subtitles)
             if self.enable_transcription:
                 frame = self.subtitle_renderer.render_subtitle(frame, current_time)
                 frame = self.subtitle_renderer.render_subtitle_history(frame, current_time)
@@ -250,7 +252,7 @@ class InterviewMonitor:
             logger.error(f"Frame processing failed: {e}")
             return frame
     
-    def _analyze_confidence(self, expressions: Dict, landmarks: Dict) -> Optional[Dict]:
+    def _analyze_confidence(self, expressions: Dict, landmarks: Dict) -> Optional[ConfidenceMetrics]:
         """Analyze overall confidence from expressions and other factors"""
         try:
             if not self.enable_confidence_analysis:
@@ -340,19 +342,57 @@ class InterviewMonitor:
         return frame
     
     def _draw_system_info(self, frame: np.ndarray, current_time: float) -> np.ndarray:
-        """Draw system information on frame"""
-        # FPS
-        cv2.putText(frame, f"FPS: {self.fps:.1f}", (10, frame.shape[0] - 60), 
+        """Draw system information in a clean bottom box"""
+        height, width = frame.shape[:2]
+        
+        # Create bottom information box
+        box_height = 80
+        box_y = height - box_height - 10
+        
+        # Draw semi-transparent background box
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (10, box_y), (width - 10, height - 10), (0, 0, 0), -1)
+        cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
+        
+        # Draw box border
+        cv2.rectangle(frame, (10, box_y), (width - 10, height - 10), (255, 255, 255), 2)
+        
+        # Calculate text positions
+        text_y = box_y + 25
+        line_height = 20
+        
+        # FPS and Frame info (left side)
+        cv2.putText(frame, f"FPS: {self.fps:.1f}", (20, text_y), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        cv2.putText(frame, f"Frame: {self.frame_count}", (20, text_y + line_height), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         
-        # Frame count
-        cv2.putText(frame, f"Frame: {self.frame_count}", (10, frame.shape[0] - 40), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-        
-        # Transcription status
+        # Transcription status (center)
         status = "ON" if self.enable_transcription else "OFF"
-        cv2.putText(frame, f"Transcription: {status}", (10, frame.shape[0] - 20), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        status_color = (0, 255, 0) if self.enable_transcription else (0, 0, 255)
+        cv2.putText(frame, f"Transcription: {status}", (width//2 - 80, text_y), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, status_color, 2)
+        
+        # Confidence level (right side)
+        if self.current_confidence:
+            confidence_level = self.current_confidence.confidence_level.value
+            confidence_score = self.current_confidence.overall_confidence
+            
+            # Color code confidence level
+            if confidence_level in ['Very High', 'High']:
+                conf_color = (0, 255, 0)  # Green
+            elif confidence_level in ['Medium']:
+                conf_color = (0, 255, 255)  # Yellow
+            else:
+                conf_color = (0, 0, 255)  # Red
+            
+            cv2.putText(frame, f"Confidence: {confidence_level}", (width - 200, text_y), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, conf_color, 2)
+            cv2.putText(frame, f"Score: {confidence_score:.1f}", (width - 200, text_y + line_height), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, conf_color, 2)
+        else:
+            cv2.putText(frame, "Confidence: Analyzing...", (width - 200, text_y), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (128, 128, 128), 2)
         
         return frame
     
@@ -455,5 +495,58 @@ def test_interview_monitor():
         print(f"❌ Interview monitor test failed: {e}")
         print("This is expected if some components are not fully configured")
 
+def main():
+    """Main function to run the live interview monitor"""
+    print("🎬 Launching Live Interview Monitor...")
+    print("=" * 50)
+    print("Features:")
+    print("• Live facial expression tracking")
+    print("• Real-time speech transcription")
+    print("• Confidence level analysis")
+    print("• Live subtitles on video")
+    print("=" * 50)
+    print("\nControls:")
+    print("• Press 'q' to quit")
+    print("• Press 'c' to calibrate expressions")
+    print("• Press 's' to save current frame")
+    print("• Press 't' to toggle transcription")
+    print("• Press 'h' to show/hide confidence display")
+    print("\nStarting in 3 seconds...")
+    
+    import time
+    time.sleep(3)
+    
+    try:
+        # Create custom subtitle style
+        subtitle_style = SubtitleStyle(
+            font_scale=1.0,
+            font_color=(255, 255, 0),  # Yellow
+            background_color=(0, 0, 128),  # Dark blue
+            background_opacity=0.8
+        )
+        
+        # Initialize monitor
+        monitor = InterviewMonitor(
+            enable_transcription=True,
+            enable_confidence_analysis=True,
+            subtitle_style=subtitle_style
+        )
+        
+        # Start monitoring
+        if monitor.start_monitoring():
+            # Run the live monitoring loop
+            monitor.run_monitoring_loop()
+        else:
+            print("❌ Failed to start monitoring")
+        
+    except KeyboardInterrupt:
+        print("\n🛑 Interview monitor stopped by user")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+    finally:
+        if 'monitor' in locals():
+            monitor.cleanup()
+        print("👋 Interview monitor closed")
+
 if __name__ == "__main__":
-    test_interview_monitor()
+    main()
