@@ -1,345 +1,513 @@
 """
-Confidence Classifier Module
-Combines facial expressions, head pose, and speech characteristics to assess candidate confidence
+Enhanced Confidence Classifier Module
+Integrates facial expressions, speech characteristics, and advanced sentiment analysis
 """
 
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 import logging
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from datetime import datetime, timedelta
+import json
+
+# Import our modules
+from .sentiment_analyzer import SentimentAnalyzer
+from .speech_analyzer import SpeechAnalyzer
+from .advanced_sentiment_analyzer import AdvancedSentimentAnalyzer, AdvancedSentimentResult
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class ConfidenceLevel(Enum):
-    """Confidence level enumeration"""
-    VERY_LOW = "Very Low"
-    LOW = "Low"
-    MEDIUM = "Medium"
-    HIGH = "High"
-    VERY_HIGH = "Very High"
+    """Confidence levels for candidates"""
+    VERY_LOW = "very_low"
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    VERY_HIGH = "very_high"
+
+class RelevanceLevel(Enum):
+    """Relevance levels for responses"""
+    IRRELEVANT = "irrelevant"
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    VERY_HIGH = "very_high"
 
 @dataclass
-class ConfidenceMetrics:
-    """Structured confidence metrics"""
-    overall_confidence: float
-    confidence_level: ConfidenceLevel
-    facial_confidence: float
-    posture_confidence: float
-    speech_confidence: float
-    sentiment_score: float
-    detailed_breakdown: Dict
+class FacialMetrics:
+    """Facial expression metrics"""
+    smile_intensity: float  # 0 to 1
+    frown_intensity: float  # 0 to 1
+    eyebrow_raise: float    # 0 to 1
+    eye_contact: float      # 0 to 1 (percentage of time looking at camera)
+    head_tilt: float        # -1 to 1 (left to right)
+    head_nod: float         # -1 to 1 (down to up)
+    blink_rate: float       # blinks per second
+    mouth_open: float       # 0 to 1
 
-class ConfidenceClassifier:
-    """Classifies candidate confidence based on multiple factors"""
+@dataclass
+class SpeechMetrics:
+    """Speech characteristics metrics"""
+    volume: float           # 0 to 1 (normalized)
+    pace: float            # 0 to 1 (slow to fast)
+    clarity: float         # 0 to 1 (unclear to clear)
+    tone: float            # -1 to 1 (monotone to expressive)
+    pause_frequency: float # 0 to 1 (frequent to rare)
+    pitch_variation: float # 0 to 1 (monotone to varied)
+
+@dataclass
+class FusionMetrics:
+    """Combined metrics with EMA smoothing"""
+    confidence_score: float      # 0 to 1
+    confidence_level: ConfidenceLevel
+    relevance_score: float       # 0 to 1
+    relevance_level: RelevanceLevel
+    sentiment_score: float       # -1 to 1
+    emotion_label: str
+    toxicity_score: float        # 0 to 1
+    politeness_score: float      # 0 to 1
+    overall_score: float         # 0 to 1 (combined metric)
     
-    def __init__(self):
-        """Initialize confidence classifier with weights and thresholds"""
-        
-        # Weights for different confidence factors
-        self.weights = {
-            'facial_expressions': 0.35,    # 35% weight
-            'head_posture': 0.25,          # 25% weight
-            'speech_characteristics': 0.25, # 25% weight
-            'sentiment': 0.15              # 15% weight
-        }
-        
-        # Confidence thresholds
-        self.confidence_thresholds = {
-            ConfidenceLevel.VERY_LOW: 0.0,
-            ConfidenceLevel.LOW: 0.2,
-            ConfidenceLevel.MEDIUM: 0.4,
-            ConfidenceLevel.HIGH: 0.6,
-            ConfidenceLevel.VERY_HIGH: 0.8
-        }
-        
-        # Facial expression confidence scoring
-        self.facial_scores = {
-            'smile': {'positive': 0.8, 'negative': 0.2},
-            'frown': {'positive': 0.2, 'negative': 0.8},
-            'raised_eyebrows': {'positive': 0.7, 'negative': 0.3},
-            'eye_contact': {'positive': 0.9, 'negative': 0.1},
-            'neutral': {'positive': 0.5, 'negative': 0.5}
-        }
-        
-        # Head posture confidence scoring
-        self.posture_scores = {
-            'upright': 0.9,      # Head straight, looking forward
-            'slight_tilt': 0.7,  # Small head tilt
-            'moderate_tilt': 0.5, # Moderate head tilt
-            'significant_tilt': 0.3, # Large head tilt
-            'looking_down': 0.2,  # Head down
-            'looking_away': 0.1   # Head turned away
-        }
-        
-        # Speech confidence scoring
-        self.speech_scores = {
-            'clear_articulation': 0.9,
-            'steady_pace': 0.8,
-            'appropriate_volume': 0.8,
-            'minimal_fillers': 0.7,
-            'consistent_tone': 0.8
-        }
-        
-        logger.info("Confidence Classifier initialized")
+    # Timestamps for tracking
+    timestamp: datetime
+    chunk_duration: float        # seconds
     
-    def classify_confidence(self, 
-                          facial_data: Dict,
-                          head_pose: Dict,
-                          speech_data: Dict,
-                          sentiment_score: float) -> ConfidenceMetrics:
+    # Raw component scores
+    facial_score: float
+    speech_score: float
+    sentiment_component: float
+
+class EMASmoother:
+    """Exponential Moving Average for smoothing metrics"""
+    
+    def __init__(self, alpha: float = 0.3):
         """
-        Classify overall confidence based on all available data
+        Initialize EMA smoother
         
         Args:
-            facial_data: Facial expression analysis results
-            head_pose: Head pose data (pitch, yaw, roll)
-            speech_data: Speech characteristics data
-            sentiment_score: Sentiment analysis score (-1 to 1)
+            alpha: Smoothing factor (0 to 1). Lower = more smoothing
+        """
+        self.alpha = alpha
+        self.value = None
+        self.initialized = False
+    
+    def update(self, new_value: float) -> float:
+        """Update EMA with new value"""
+        if not self.initialized:
+            self.value = new_value
+            self.initialized = True
+        else:
+            self.value = self.alpha * new_value + (1 - self.alpha) * self.value
+        
+        return self.value
+    
+    def get_value(self) -> Optional[float]:
+        """Get current EMA value"""
+        return self.value
+
+class ConfidenceClassifier:
+    """Enhanced confidence classifier with fusion layer"""
+    
+    def __init__(self, use_advanced_sentiment: bool = True):
+        """
+        Initialize confidence classifier
+        
+        Args:
+            use_advanced_sentiment: Whether to use advanced sentiment analysis
+        """
+        # Initialize analyzers
+        self.sentiment_analyzer = SentimentAnalyzer()
+        self.speech_analyzer = SpeechAnalyzer()
+        
+        if use_advanced_sentiment:
+            try:
+                self.advanced_sentiment_analyzer = AdvancedSentimentAnalyzer()
+                self.use_advanced = True
+                logger.info("✓ Advanced sentiment analyzer initialized")
+            except Exception as e:
+                logger.warning(f"Advanced sentiment analyzer failed: {e}")
+                self.use_advanced = False
+        else:
+            self.use_advanced = False
+        
+        # Initialize EMA smoothers for each metric
+        self.confidence_smoother = EMASmoother(alpha=0.3)
+        self.relevance_smoother = EMASmoother(alpha=0.3)
+        self.sentiment_smoother = EMASmoother(alpha=0.3)
+        self.facial_smoother = EMASmoother(alpha=0.4)
+        self.speech_smoother = EMASmoother(alpha=0.4)
+        
+        # Session tracking
+        self.session_start = datetime.now()
+        self.session_id = self.session_start.strftime("%Y%m%d_%H%M%S")
+        self.chunk_count = 0
+        
+        # Performance tracking
+        self.performance_history = []
+        
+        logger.info(f"Confidence Classifier initialized (Session: {self.session_id})")
+    
+    def analyze_chunk(self, 
+                     transcript: str,
+                     facial_metrics: Optional[FacialMetrics] = None,
+                     speech_metrics: Optional[SpeechMetrics] = None,
+                     chunk_duration: float = 5.0) -> FusionMetrics:
+        """
+        Analyze a transcript chunk and produce fusion metrics
+        
+        Args:
+            transcript: Text transcript to analyze
+            facial_metrics: Facial expression metrics
+            speech_metrics: Speech characteristics metrics
+            chunk_duration: Duration of the chunk in seconds
             
         Returns:
-            ConfidenceMetrics object with detailed confidence assessment
+            FusionMetrics with all combined analysis
         """
         try:
-            # Calculate individual confidence scores
-            facial_confidence = self._calculate_facial_confidence(facial_data)
-            posture_confidence = self._calculate_posture_confidence(head_pose)
-            speech_confidence = self._calculate_speech_confidence(speech_data)
+            self.chunk_count += 1
+            timestamp = datetime.now()
             
-            # Normalize sentiment score to 0-1 range
-            normalized_sentiment = (sentiment_score + 1) / 2
+            # 1. Advanced sentiment analysis
+            if self.use_advanced and transcript.strip():
+                sentiment_result = self.advanced_sentiment_analyzer.analyze_sentiment(transcript)
+                sentiment_score = sentiment_result.overall_sentiment
+                emotion_label = sentiment_result.primary_emotion.value
+                toxicity_score = sentiment_result.toxicity_score
+                politeness_score = sentiment_result.politeness_score
+            else:
+                # Fallback to basic sentiment
+                basic_sentiment = self.sentiment_analyzer.analyze_sentiment(transcript)
+                sentiment_score = basic_sentiment.get('polarity', 0.0)
+                emotion_label = "neutral"
+                toxicity_score = 0.0
+                politeness_score = 0.5
             
-            # Calculate weighted overall confidence
-            overall_confidence = (
-                self.weights['facial_expressions'] * facial_confidence +
-                self.weights['head_posture'] * posture_confidence +
-                self.weights['speech_characteristics'] * speech_confidence +
-                self.weights['sentiment'] * normalized_sentiment
+            # 2. Calculate component scores
+            facial_score = self._calculate_facial_score(facial_metrics) if facial_metrics else 0.5
+            speech_score = self._calculate_speech_score(speech_metrics) if speech_metrics else 0.5
+            sentiment_component = self._normalize_sentiment(sentiment_score)
+            
+            # 3. Apply EMA smoothing
+            smoothed_facial = self.facial_smoother.update(facial_score)
+            smoothed_speech = self.speech_smoother.update(speech_score)
+            smoothed_sentiment = self.sentiment_smoother.update(sentiment_component)
+            
+            # 4. Fusion algorithm - weighted combination
+            confidence_score = self._fuse_confidence_metrics(
+                smoothed_facial, smoothed_speech, smoothed_sentiment
+            )
+            relevance_score = self._fuse_relevance_metrics(
+                transcript, sentiment_score, toxicity_score
             )
             
-            # Determine confidence level
-            confidence_level = self._determine_confidence_level(overall_confidence)
+            # 5. Apply final smoothing
+            smoothed_confidence = self.confidence_smoother.update(confidence_score)
+            smoothed_relevance = self.relevance_smoother.update(relevance_score)
             
-            # Create detailed breakdown
-            detailed_breakdown = {
-                'facial_expressions': {
-                    'score': facial_confidence,
-                    'weight': self.weights['facial_expressions'],
-                    'contribution': facial_confidence * self.weights['facial_expressions']
-                },
-                'head_posture': {
-                    'score': posture_confidence,
-                    'weight': self.weights['head_posture'],
-                    'contribution': posture_confidence * self.weights['head_posture']
-                },
-                'speech_characteristics': {
-                    'score': speech_confidence,
-                    'weight': self.weights['speech_characteristics'],
-                    'contribution': speech_confidence * self.weights['speech_characteristics']
-                },
-                'sentiment': {
-                    'score': normalized_sentiment,
-                    'weight': self.weights['sentiment'],
-                    'contribution': normalized_sentiment * self.weights['sentiment']
-                }
-            }
+            # 6. Determine levels
+            confidence_level = self._classify_confidence(smoothed_confidence)
+            relevance_level = self._classify_relevance(smoothed_relevance)
             
-            return ConfidenceMetrics(
-                overall_confidence=overall_confidence,
+            # 7. Calculate overall score
+            overall_score = (smoothed_confidence + smoothed_relevance + smoothed_sentiment) / 3
+            
+            # 8. Create fusion metrics
+            fusion_metrics = FusionMetrics(
+                confidence_score=smoothed_confidence,
                 confidence_level=confidence_level,
-                facial_confidence=facial_confidence,
-                posture_confidence=posture_confidence,
-                speech_confidence=speech_confidence,
+                relevance_score=smoothed_relevance,
+                relevance_level=relevance_level,
                 sentiment_score=sentiment_score,
-                detailed_breakdown=detailed_breakdown
+                emotion_label=emotion_label,
+                toxicity_score=toxicity_score,
+                politeness_score=politeness_score,
+                overall_score=overall_score,
+                timestamp=timestamp,
+                chunk_duration=chunk_duration,
+                facial_score=smoothed_facial,
+                speech_score=smoothed_speech,
+                sentiment_component=smoothed_sentiment
             )
+            
+            # 9. Log performance data
+            self._log_performance(fusion_metrics, transcript)
+            
+            return fusion_metrics
             
         except Exception as e:
-            logger.error(f"Confidence classification failed: {str(e)}")
-            # Return neutral confidence on error
-            return ConfidenceMetrics(
-                overall_confidence=0.5,
-                confidence_level=ConfidenceLevel.MEDIUM,
-                facial_confidence=0.5,
-                posture_confidence=0.5,
-                speech_confidence=0.5,
-                sentiment_score=0.0,
-                detailed_breakdown={}
-            )
+            logger.error(f"Error analyzing chunk: {e}")
+            return self._get_default_metrics(timestamp, chunk_duration)
     
-    def _calculate_facial_confidence(self, facial_data: Dict) -> float:
-        """Calculate confidence score from facial expressions"""
-        if not facial_data:
-            return 0.5  # Neutral score
+    def _calculate_facial_score(self, metrics: FacialMetrics) -> float:
+        """Calculate facial confidence score from metrics"""
+        # Positive indicators
+        positive_score = (
+            metrics.smile_intensity * 0.3 +
+            metrics.eye_contact * 0.4 +
+            (1 - abs(metrics.head_tilt)) * 0.2 +
+            (1 - abs(metrics.head_nod)) * 0.1
+        )
         
-        total_score = 0.0
-        expression_count = 0
+        # Negative indicators
+        negative_score = (
+            metrics.frown_intensity * 0.3 +
+            metrics.eyebrow_raise * 0.2 +
+            metrics.blink_rate * 0.2 +
+            metrics.mouth_open * 0.3
+        )
         
-        # Analyze each detected expression
-        for expression_name, expression_data in facial_data.items():
-            if expression_data.get('detected', False):
-                confidence = expression_data.get('confidence', 0.0)
-                
-                # Get base score for this expression
-                if expression_name in self.facial_scores:
-                    base_score = self.facial_scores[expression_name]['positive']
-                    # Weight by confidence
-                    weighted_score = base_score * confidence
-                    total_score += weighted_score
-                    expression_count += 1
-        
-        # If no expressions detected, return neutral score
-        if expression_count == 0:
-            return 0.5
-        
-        # Return average score
-        return total_score / expression_count
+        # Normalize to 0-1
+        facial_score = max(0, positive_score - negative_score)
+        return min(1.0, facial_score)
     
-    def _calculate_posture_confidence(self, head_pose: Dict) -> float:
-        """Calculate confidence score from head posture"""
-        if not head_pose:
-            return 0.5  # Neutral score
+    def _calculate_speech_score(self, metrics: SpeechMetrics) -> float:
+        """Calculate speech confidence score from metrics"""
+        # Positive indicators
+        positive_score = (
+            metrics.volume * 0.2 +
+            metrics.clarity * 0.4 +
+            metrics.tone * 0.3 +
+            (1 - metrics.pause_frequency) * 0.1
+        )
         
-        # Extract pose angles
-        pitch = abs(head_pose.get('pitch', 0))
-        yaw = abs(head_pose.get('yaw', 0))
-        roll = abs(head_pose.get('roll', 0))
+        # Pace should be moderate (not too fast, not too slow)
+        pace_score = 1 - abs(metrics.pace - 0.5) * 2
         
-        # Score based on head position
-        # Ideal: head straight (low angles)
-        # Poor: head tilted or turned (high angles)
-        
-        # Normalize angles to 0-1 scale (0 = ideal, 1 = poor)
-        max_angle = 45.0  # degrees
-        
-        pitch_score = 1.0 - min(pitch / max_angle, 1.0)
-        yaw_score = 1.0 - min(yaw / max_angle, 1.0)
-        roll_score = 1.0 - min(roll / max_angle, 1.0)
-        
-        # Weight the scores (pitch and yaw more important than roll)
-        posture_score = (0.4 * pitch_score + 0.4 * yaw_score + 0.2 * roll_score)
-        
-        return posture_score
+        speech_score = (positive_score + pace_score) / 2
+        return max(0, min(1, speech_score))
     
-    def _calculate_speech_confidence(self, speech_data: Dict) -> float:
-        """Calculate confidence score from speech characteristics"""
-        if not speech_data:
-            return 0.5  # Neutral score
-        
-        total_score = 0.0
-        factor_count = 0
-        
-        # Analyze speech factors
-        for factor_name, factor_score in speech_data.items():
-            if factor_name in self.speech_scores:
-                # Normalize factor score to 0-1 if needed
-                normalized_score = min(max(factor_score, 0.0), 1.0)
-                total_score += normalized_score
-                factor_count += 1
-        
-        # If no speech factors, return neutral score
-        if factor_count == 0:
-            return 0.5
-        
-        # Return average score
-        return total_score / factor_count
+    def _normalize_sentiment(self, sentiment: float) -> float:
+        """Normalize sentiment from [-1, 1] to [0, 1]"""
+        return (sentiment + 1) / 2
     
-    def _determine_confidence_level(self, confidence_score: float) -> ConfidenceLevel:
-        """Determine confidence level from numerical score"""
-        # Find the highest threshold that the score meets
-        for level in reversed(list(ConfidenceLevel)):
-            if confidence_score >= self.confidence_thresholds[level]:
-                return level
+    def _fuse_confidence_metrics(self, facial: float, speech: float, sentiment: float) -> float:
+        """Fuse facial, speech, and sentiment metrics for confidence"""
+        # Weighted combination - facial expressions are most important
+        weights = {
+            'facial': 0.5,
+            'speech': 0.3,
+            'sentiment': 0.2
+        }
         
-        return ConfidenceLevel.VERY_LOW
+        confidence_score = (
+            facial * weights['facial'] +
+            speech * weights['speech'] +
+            sentiment * weights['sentiment']
+        )
+        
+        return max(0, min(1, confidence_score))
     
-    def get_confidence_summary(self, metrics: ConfidenceMetrics) -> str:
-        """Get human-readable confidence summary"""
-        level = metrics.confidence_level.value
-        overall = f"{metrics.overall_confidence:.1%}"
+    def _fuse_relevance_metrics(self, transcript: str, sentiment: float, toxicity: float) -> float:
+        """Fuse metrics for relevance scoring"""
+        # Base relevance from transcript length and content
+        word_count = len(transcript.split())
+        base_relevance = min(1.0, word_count / 20.0)  # Normalize to 20 words
         
-        summary = f"Confidence Level: {level} ({overall})\n"
-        summary += f"Facial: {metrics.facial_confidence:.1%}\n"
-        summary += f"Posture: {metrics.posture_confidence:.1%}\n"
-        summary += f"Speech: {metrics.speech_confidence:.1%}\n"
-        summary += f"Sentiment: {metrics.sentiment_score:.2f}"
+        # Sentiment contribution (positive sentiment suggests relevance)
+        sentiment_contribution = (sentiment + 1) / 2
         
-        return summary
+        # Toxicity penalty (toxic content is less relevant)
+        toxicity_penalty = 1 - toxicity
+        
+        # Combine metrics
+        relevance_score = (
+            base_relevance * 0.4 +
+            sentiment_contribution * 0.4 +
+            toxicity_penalty * 0.2
+        )
+        
+        return max(0, min(1, relevance_score))
     
-    def get_recommendations(self, metrics: ConfidenceMetrics) -> List[str]:
-        """Get improvement recommendations based on confidence analysis"""
-        recommendations = []
+    def _classify_confidence(self, score: float) -> ConfidenceLevel:
+        """Classify confidence level from score"""
+        if score < 0.2:
+            return ConfidenceLevel.VERY_LOW
+        elif score < 0.4:
+            return ConfidenceLevel.LOW
+        elif score < 0.6:
+            return ConfidenceLevel.MEDIUM
+        elif score < 0.8:
+            return ConfidenceLevel.HIGH
+        else:
+            return ConfidenceLevel.VERY_HIGH
+    
+    def _classify_relevance(self, score: float) -> RelevanceLevel:
+        """Classify relevance level from score"""
+        if score < 0.2:
+            return RelevanceLevel.IRRELEVANT
+        elif score < 0.4:
+            return RelevanceLevel.LOW
+        elif score < 0.6:
+            return RelevanceLevel.MEDIUM
+        elif score < 0.8:
+            return RelevanceLevel.HIGH
+        else:
+            return RelevanceLevel.VERY_HIGH
+    
+    def _log_performance(self, metrics: FusionMetrics, transcript: str):
+        """Log performance data for analysis"""
+        log_entry = {
+            "session_id": self.session_id,
+            "chunk_id": self.chunk_count,
+            "timestamp": metrics.timestamp.isoformat(),
+            "chunk_duration": metrics.chunk_duration,
+            "text": transcript,
+            "sentiment": round(metrics.sentiment_score, 3),
+            "emotion": metrics.emotion_label,
+            "toxicity": round(metrics.toxicity_score, 3),
+            "politeness": round(metrics.politeness_score, 3),
+            "confidence": round(metrics.confidence_score, 3),
+            "relevance": round(metrics.relevance_score, 3),
+            "overall_score": round(metrics.overall_score, 3),
+            "facial_score": round(metrics.facial_score, 3),
+            "speech_score": round(metrics.speech_score, 3),
+            "sentiment_component": round(metrics.sentiment_component, 3)
+        }
         
-        # Facial expression recommendations
-        if metrics.facial_confidence < 0.6:
-            recommendations.append("Try to maintain positive facial expressions")
-            recommendations.append("Practice confident eye contact")
+        self.performance_history.append(log_entry)
         
-        # Posture recommendations
-        if metrics.posture_confidence < 0.6:
-            recommendations.append("Keep your head upright and facing forward")
-            recommendations.append("Avoid excessive head tilting or turning")
+        # Log to console for debugging
+        logger.info(f"Chunk {self.chunk_count}: Confidence={metrics.confidence_level.value} "
+                   f"({metrics.confidence_score:.2f}), Relevance={metrics.relevance_level.value} "
+                   f"({metrics.relevance_score:.2f}), Emotion={metrics.emotion_label}")
+    
+    def _get_default_metrics(self, timestamp: datetime, chunk_duration: float) -> FusionMetrics:
+        """Return default metrics when analysis fails"""
+        return FusionMetrics(
+            confidence_score=0.5,
+            confidence_level=ConfidenceLevel.MEDIUM,
+            relevance_score=0.5,
+            relevance_level=RelevanceLevel.MEDIUM,
+            sentiment_score=0.0,
+            emotion_label="neutral",
+            toxicity_score=0.0,
+            politeness_score=0.5,
+            overall_score=0.5,
+            timestamp=timestamp,
+            chunk_duration=chunk_duration,
+            facial_score=0.5,
+            speech_score=0.5,
+            sentiment_component=0.5
+        )
+    
+    def get_session_summary(self) -> Dict:
+        """Get summary statistics for the current session"""
+        if not self.performance_history:
+            return {"error": "No performance data available"}
         
-        # Speech recommendations
-        if metrics.speech_confidence < 0.6:
-            recommendations.append("Speak clearly and at a steady pace")
-            recommendations.append("Maintain appropriate volume and tone")
+        # Calculate averages
+        avg_confidence = np.mean([m['confidence'] for m in self.performance_history])
+        avg_relevance = np.mean([m['relevance'] for m in self.performance_history])
+        avg_sentiment = np.mean([m['sentiment'] for m in self.performance_history])
+        avg_overall = np.mean([m['overall_score'] for m in self.performance_history])
         
-        # Sentiment recommendations
-        if metrics.sentiment_score < 0.0:
-            recommendations.append("Try to maintain a positive tone")
-            recommendations.append("Focus on confident and optimistic language")
+        # Count emotions
+        emotion_counts = {}
+        for m in self.performance_history:
+            emotion = m['emotion']
+            emotion_counts[emotion] = emotion_counts.get(emotion, 0) + 1
         
-        if not recommendations:
-            recommendations.append("Excellent confidence! Keep up the great work!")
+        # Session duration
+        session_duration = (datetime.now() - self.session_start).total_seconds()
         
-        return recommendations
+        return {
+            "session_id": self.session_id,
+            "session_duration_seconds": session_duration,
+            "total_chunks": self.chunk_count,
+            "averages": {
+                "confidence": round(avg_confidence, 3),
+                "relevance": round(avg_relevance, 3),
+                "sentiment": round(avg_sentiment, 3),
+                "overall_score": round(avg_overall, 3)
+            },
+            "emotion_distribution": emotion_counts,
+            "chunks_per_minute": round(self.chunk_count / (session_duration / 60), 2)
+        }
+    
+    def export_performance_log(self, filename: str = None) -> str:
+        """Export performance log to JSONL file"""
+        if not filename:
+            filename = f"performance_log_{self.session_id}.jsonl"
+        
+        try:
+            with open(filename, 'w') as f:
+                for entry in self.performance_history:
+                    f.write(json.dumps(entry) + '\n')
+            
+            logger.info(f"Performance log exported to {filename}")
+            return filename
+            
+        except Exception as e:
+            logger.error(f"Failed to export performance log: {e}")
+            return ""
 
 def test_confidence_classifier():
-    """Test function for confidence classifier"""
-    print("Testing confidence classifier...")
+    """Test function for enhanced confidence classifier"""
+    print("Testing Enhanced Confidence Classifier...")
     
-    classifier = ConfidenceClassifier()
-    print("✓ Confidence classifier initialized")
-    
-    # Test with sample data
-    facial_data = {
-        'smile': {'detected': True, 'confidence': 0.8},
-        'raised_eyebrows': {'detected': False, 'confidence': 0.0}
-    }
-    
-    head_pose = {
-        'pitch': 5.0,  # Small forward tilt
-        'yaw': 2.0,    # Slight turn
-        'roll': 1.0    # Minimal tilt
-    }
-    
-    speech_data = {
-        'clear_articulation': 0.8,
-        'steady_pace': 0.7,
-        'appropriate_volume': 0.9
-    }
-    
-    sentiment_score = 0.3  # Slightly positive
-    
-    # Classify confidence
-    metrics = classifier.classify_confidence(facial_data, head_pose, speech_data, sentiment_score)
-    
-    print(f"✓ Overall confidence: {metrics.overall_confidence:.1%}")
-    print(f"✓ Confidence level: {metrics.confidence_level.value}")
-    print(f"✓ Facial confidence: {metrics.facial_confidence:.1%}")
-    print(f"✓ Posture confidence: {metrics.posture_confidence:.1%}")
-    print(f"✓ Speech confidence: {metrics.speech_confidence:.1%}")
-    
-    # Get recommendations
-    recommendations = classifier.get_recommendations(metrics)
-    print("\nRecommendations:")
-    for rec in recommendations:
-        print(f"  • {rec}")
-    
-    print("\nConfidence classifier is ready for use!")
+    try:
+        classifier = ConfidenceClassifier(use_advanced_sentiment=True)
+        print("✓ Enhanced confidence classifier initialized")
+        
+        # Test with sample data
+        test_transcript = "I am very confident in my abilities and I believe I can excel in this role."
+        
+        # Mock facial metrics
+        facial_metrics = FacialMetrics(
+            smile_intensity=0.8,
+            frown_intensity=0.1,
+            eyebrow_raise=0.2,
+            eye_contact=0.9,
+            head_tilt=0.0,
+            head_nod=0.1,
+            blink_rate=0.3,
+            mouth_open=0.2
+        )
+        
+        # Mock speech metrics
+        speech_metrics = SpeechMetrics(
+            volume=0.8,
+            pace=0.7,
+            clarity=0.9,
+            tone=0.8,
+            pause_frequency=0.2,
+            pitch_variation=0.7
+        )
+        
+        # Analyze chunk
+        result = classifier.analyze_chunk(
+            transcript=test_transcript,
+            facial_metrics=facial_metrics,
+            speech_metrics=speech_metrics,
+            chunk_duration=5.0
+        )
+        
+        print(f"\nAnalysis Result:")
+        print(f"Confidence: {result.confidence_level.value} ({result.confidence_score:.2f})")
+        print(f"Relevance: {result.relevance_level.value} ({result.relevance_score:.2f})")
+        print(f"Sentiment: {result.sentiment_score:.2f}")
+        print(f"Emotion: {result.emotion_label}")
+        print(f"Toxicity: {result.toxicity_score:.2f}")
+        print(f"Politeness: {result.politeness_score:.2f}")
+        print(f"Overall Score: {result.overall_score:.2f}")
+        
+        # Get session summary
+        summary = classifier.get_session_summary()
+        print(f"\nSession Summary:")
+        print(f"Total Chunks: {summary['total_chunks']}")
+        print(f"Avg Confidence: {summary['averages']['confidence']}")
+        print(f"Avg Relevance: {summary['averages']['relevance']}")
+        
+        print("\nEnhanced confidence classifier is ready for use!")
+        
+    except Exception as e:
+        print(f"❌ Enhanced confidence classifier test failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     test_confidence_classifier()
