@@ -1,0 +1,288 @@
+2025-08-14 21:58:11,455 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 21:58:11,673 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 21:58:12,276 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 21:58:12,534 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 21:58:12,656 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 21:58:12,657 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 21:58:12,667 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 21:58:12,683 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 21:58:12,688 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_215812)
+2025-08-14 21:58:13,308 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 21:58:14,414 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 21:58:14,686 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 21:58:14,687 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 21:58:14,714 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 21:58:26,853 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 21:58:26,853 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:03:19,924 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:03:20,153 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:03:20,732 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:03:20,898 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:03:20,898 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:03:21,011 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:03:21,011 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:03:21,012 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:03:21,020 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:03:21,020 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:03:21,021 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:03:21,021 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_220321)
+2025-08-14 22:03:21,638 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:03:22,748 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:03:23,018 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:03:23,019 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:03:23,048 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:03:35,288 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:03:35,289 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:03:35,292 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:04:35,861 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:04:36,069 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:04:36,648 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:04:36,966 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:04:36,967 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:04:37,074 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:04:37,074 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:04:37,075 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:04:37,083 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:04:37,090 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:04:37,090 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:04:37,091 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_220437)
+2025-08-14 22:04:37,093 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:04:37,693 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:04:38,745 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:04:39,018 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:04:39,019 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:04:39,044 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:04:51,559 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:04:51,560 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:04:51,562 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:06:36,293 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:06:36,509 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:06:37,154 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:06:37,351 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:06:37,351 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:06:37,468 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:06:37,469 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:06:37,469 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:06:37,478 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:06:37,479 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:06:37,479 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:06:37,480 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_220637)
+2025-08-14 22:06:37,481 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:06:38,121 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:06:39,238 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:06:39,509 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:06:39,509 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:06:39,538 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:06:51,998 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:06:51,999 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:06:52,001 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:07:58,091 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:07:58,288 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:07:58,895 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:07:59,101 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:07:59,101 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:07:59,226 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:07:59,227 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:07:59,227 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:07:59,238 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:07:59,238 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:07:59,239 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:07:59,239 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_220759)
+2025-08-14 22:07:59,242 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:07:59,884 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:08:00,937 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:08:01,199 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:08:01,199 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:08:01,227 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:08:13,687 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:08:13,689 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:08:13,691 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:09:33,934 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:09:34,152 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:09:34,771 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:09:35,035 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:09:35,035 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:09:35,142 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:09:35,142 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:09:35,143 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:09:35,150 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:09:35,151 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:09:35,151 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:09:35,152 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_220935)
+2025-08-14 22:09:35,153 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:09:35,802 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:09:36,822 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:09:37,097 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:09:37,097 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:09:37,130 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:09:49,654 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:09:49,655 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:09:49,657 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:11:22,741 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:11:22,955 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:11:23,584 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:11:23,741 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:11:23,742 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:11:23,868 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:11:23,869 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:11:23,869 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:11:23,877 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:11:23,878 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:11:23,878 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:11:23,879 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_221123)
+2025-08-14 22:11:23,881 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:11:24,588 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:11:25,628 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:11:25,898 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:11:25,898 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:11:25,927 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:11:38,255 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:11:38,256 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:11:38,258 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:12:18,822 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:12:19,022 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:12:19,618 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:12:19,788 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:12:19,788 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:12:19,898 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:12:19,898 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:12:19,900 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:12:19,908 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:12:19,909 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:12:19,909 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:12:19,909 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_221219)
+2025-08-14 22:12:19,911 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:12:20,591 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:12:21,636 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:12:21,913 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:12:21,913 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:12:21,953 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:12:34,248 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:12:34,249 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:12:34,254 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:13:15,263 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:13:15,468 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:13:16,088 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:13:16,268 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:13:16,269 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:13:16,387 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:13:16,388 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:13:16,388 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:13:16,397 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:13:16,398 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:13:16,398 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:13:16,398 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_221316)
+2025-08-14 22:13:16,400 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:13:17,053 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:13:18,095 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:13:18,354 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:13:18,355 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:13:18,383 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:13:30,609 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:13:30,610 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:13:30,613 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:14:13,550 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:14:13,753 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:14:14,359 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:14:14,540 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:14:14,541 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:14:14,647 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:14:14,648 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:14:14,648 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:14:14,656 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:14:14,656 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:14:14,657 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:14:14,657 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_221414)
+2025-08-14 22:14:14,659 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:14:15,302 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:14:16,396 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:14:16,668 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:14:16,669 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:14:16,701 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:14:29,109 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:14:29,109 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:14:29,112 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:15:10,990 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:15:11,206 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:15:11,797 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:15:11,963 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:15:11,964 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:15:12,081 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:15:12,081 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:15:12,082 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:15:12,089 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:15:12,089 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:15:12,089 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:15:12,090 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_221512)
+2025-08-14 22:15:12,092 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:15:12,748 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:15:13,800 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:15:14,066 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:15:14,067 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:15:14,095 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:15:26,545 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:15:26,546 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:15:26,549 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:16:06,903 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:16:07,116 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:16:07,708 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:16:07,909 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:16:07,909 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:16:08,031 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:16:08,032 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:16:08,032 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:16:08,040 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:16:08,041 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:16:08,041 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:16:08,042 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_221608)
+2025-08-14 22:16:08,044 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:16:08,699 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:16:09,786 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:16:10,061 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:16:10,062 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:16:10,090 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:16:22,357 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:16:22,359 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:16:22,360 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:17:03,459 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:17:03,686 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:17:04,287 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:17:04,441 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:17:04,441 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:17:04,554 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:17:04,555 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:17:04,555 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:17:04,563 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:17:04,563 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:17:04,564 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:17:04,564 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_221704)
+2025-08-14 22:17:04,567 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:17:05,206 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:17:06,311 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:17:06,588 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:17:06,589 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:17:06,616 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:17:19,054 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:17:19,054 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:17:19,057 - __main__ - ERROR - Interview Monitor failed
+2025-08-14 22:38:45,058 - root - WARNING - FER not available. Using basic emotion detection.
+2025-08-14 22:38:45,336 - root - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:38:46,263 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:38:46,461 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:38:46,462 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:38:46,633 - confidence_analysis.sentiment_analyzer - INFO - Sentiment Analyzer initialized
+2025-08-14 22:38:46,634 - confidence_analysis.speech_analyzer - INFO - Speech Analyzer initialized
+2025-08-14 22:38:46,634 - confidence_analysis.advanced_sentiment_analyzer - WARNING - Transformers not available. Using fallback methods.
+2025-08-14 22:38:46,642 - confidence_analysis.advanced_sentiment_analyzer - INFO - Fallback models initialized
+2025-08-14 22:38:46,643 - confidence_analysis.advanced_sentiment_analyzer - INFO - Advanced Sentiment Analyzer initialized (device: cpu)
+2025-08-14 22:38:46,643 - confidence_analysis.confidence_classifier - INFO - Advanced sentiment analyzer initialized
+2025-08-14 22:38:46,644 - confidence_analysis.confidence_classifier - INFO - Confidence Classifier initialized (Session: 20250814_223846)
+2025-08-14 22:38:46,646 - confidence_analysis.confidence_classifier - INFO - Chunk 1: Confidence=high (0.75), Relevance=high (0.68), Emotion=neutral
+2025-08-14 22:38:47,697 - transcription.whisper_asr - INFO - Loading Whisper model: base
+2025-08-14 22:38:49,503 - transcription.whisper_asr - INFO - Whisper model loaded on cpu
+2025-08-14 22:38:49,780 - transcription.whisper_asr - INFO - Whisper ASR initialized successfully
+2025-08-14 22:38:49,781 - transcription.subtitle_renderer - INFO - Subtitle Renderer initialized
+2025-08-14 22:38:49,819 - root - WARNING - PyQt5 not available: DLL load failed while importing QtWidgets: The specified module could not be found.. HUD interface will not work.
+2025-08-14 22:39:02,324 - src.logging.bigquery_logger - ERROR - Failed to initialize BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-08-14 22:39:02,325 - src.logging.bigquery_logger - WARNING - BigQuery client not available. Feature logging skipped.
+2025-08-14 22:39:02,328 - __main__ - ERROR - Interview Monitor failed

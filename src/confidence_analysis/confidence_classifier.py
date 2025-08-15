@@ -126,7 +126,7 @@ class ConfidenceClassifier:
             try:
                 self.advanced_sentiment_analyzer = AdvancedSentimentAnalyzer()
                 self.use_advanced = True
-                logger.info("✓ Advanced sentiment analyzer initialized")
+                logger.info("Advanced sentiment analyzer initialized")
             except Exception as e:
                 logger.warning(f"Advanced sentiment analyzer failed: {e}")
                 self.use_advanced = False
@@ -173,11 +173,20 @@ class ConfidenceClassifier:
             
             # 1. Advanced sentiment analysis
             if self.use_advanced and transcript.strip():
-                sentiment_result = self.advanced_sentiment_analyzer.analyze_sentiment(transcript)
-                sentiment_score = sentiment_result.overall_sentiment
-                emotion_label = sentiment_result.primary_emotion.value
-                toxicity_score = sentiment_result.toxicity_score
-                politeness_score = sentiment_result.politeness_score
+                try:
+                    sentiment_result = self.advanced_sentiment_analyzer.analyze_sentiment(transcript)
+                    sentiment_score = sentiment_result.overall_sentiment
+                    emotion_label = sentiment_result.primary_emotion.value
+                    toxicity_score = sentiment_result.toxicity_score
+                    politeness_score = sentiment_result.politeness_score
+                except Exception as e:
+                    logger.warning(f"Advanced sentiment analysis failed: {e}, using fallback")
+                    # Fallback to basic sentiment
+                    basic_sentiment = self.sentiment_analyzer.analyze_sentiment(transcript)
+                    sentiment_score = basic_sentiment.get('polarity', 0.0)
+                    emotion_label = "neutral"
+                    toxicity_score = 0.0
+                    politeness_score = 0.5
             else:
                 # Fallback to basic sentiment
                 basic_sentiment = self.sentiment_analyzer.analyze_sentiment(transcript)

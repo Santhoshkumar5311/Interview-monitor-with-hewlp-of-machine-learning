@@ -185,7 +185,7 @@ class AdvancedSentimentAnalyzer:
             nltk.download('punkt', quiet=True)
             
             self.vader_analyzer = SentimentIntensityAnalyzer()
-            logger.info("✓ Fallback models initialized")
+            logger.info("Fallback models initialized")
             
         except Exception as e:
             logger.error(f"Failed to initialize fallback models: {e}")
