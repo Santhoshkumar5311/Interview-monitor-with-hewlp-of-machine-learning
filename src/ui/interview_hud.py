@@ -19,9 +19,99 @@ try:
     from PyQt5.QtGui import QPainter, QColor, QFont, QPalette, QPixmap, QLinearGradient
     from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QDateTimeAxis
     PYQT5_AVAILABLE = True
-except ImportError:
+    # Define fallback classes if import fails
+    QWidget = QWidget
+    QApplication = QApplication
+    QMainWindow = QMainWindow
+except ImportError as e:
     PYQT5_AVAILABLE = False
-    logging.warning("PyQt5 not available. HUD interface will not work.")
+    logging.warning(f"PyQt5 not available: {e}. HUD interface will not work.")
+    # Create dummy classes for fallback
+    class QWidget:
+        def __init__(self, parent=None): pass
+        def setLayout(self, layout): pass
+        def setFixedSize(self, width, height): pass
+    class QApplication:
+        def __init__(self, argv): pass
+    class QMainWindow:
+        def __init__(self): pass
+    class QPainter:
+        def __init__(self): pass
+        def drawRect(self, *args): pass
+        def fillRect(self, *args): pass
+        def setPen(self, *args): pass
+        def setBrush(self, *args): pass
+    class QColor:
+        def __init__(self, *args): pass
+    class QFont:
+        def __init__(self, *args): pass
+    class QVBoxLayout:
+        def __init__(self): pass
+        def addWidget(self, *args): pass
+    class QHBoxLayout:
+        def __init__(self): pass
+        def addWidget(self, *args): pass
+    class QGridLayout:
+        def __init__(self): pass
+        def addWidget(self, *args): pass
+    class QLabel:
+        def __init__(self, text=""): pass
+        def setAlignment(self, *args): pass
+        def setStyleSheet(self, *args): pass
+    class QProgressBar:
+        def __init__(self): pass
+        def setRange(self, *args): pass
+        def setTextVisible(self, *args): pass
+        def setStyleSheet(self, *args): pass
+    class QTextEdit:
+        def __init__(self): pass
+        def setText(self, *args): pass
+    class QScrollArea:
+        def __init__(self): pass
+        def setWidget(self, *args): pass
+    class QFrame:
+        def __init__(self): pass
+        def setFrameStyle(self, *args): pass
+    class QPushButton:
+        def __init__(self, text=""): pass
+        def clicked(self): pass
+    class QSlider:
+        def __init__(self): pass
+    class QCheckBox:
+        def __init__(self, text=""): pass
+    class QGroupBox:
+        def __init__(self, title=""): pass
+    class QSplitter:
+        def __init__(self): pass
+    class QTimer:
+        def __init__(self): pass
+        def start(self, *args): pass
+        def stop(self): pass
+    class QThread:
+        def __init__(self): pass
+        def start(self): pass
+        def stop(self): pass
+    class pyqtSignal:
+        def __init__(self): pass
+    class QPropertyAnimation:
+        def __init__(self, *args): pass
+        def setDuration(self, *args): pass
+    class QEasingCurve:
+        def __init__(self): pass
+    class QPixmap:
+        def __init__(self, *args): pass
+    class QLinearGradient:
+        def __init__(self, *args): pass
+    class QChart:
+        def __init__(self): pass
+    class QChartView:
+        def __init__(self): pass
+    class QLineSeries:
+        def __init__(self): pass
+    class QValueAxis:
+        def __init__(self): pass
+    class QDateTimeAxis:
+        def __init__(self): pass
 
 logger = logging.getLogger(__name__)
 
