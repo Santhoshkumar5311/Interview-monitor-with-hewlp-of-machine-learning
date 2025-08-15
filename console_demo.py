@@ -29,7 +29,7 @@ def test_core_components():
     # Test 1: Advanced Sentiment Analysis
     print("1️⃣ Testing Advanced Sentiment Analysis...")
     try:
-        from confidence_analysis.advanced_sentiment_analyzer import AdvancedSentimentAnalyzer
+        from src.confidence_analysis.advanced_sentiment_analyzer import AdvancedSentimentAnalyzer
         
         analyzer = AdvancedSentimentAnalyzer()
         test_texts = [
@@ -54,8 +54,8 @@ def test_core_components():
     # Test 2: Facial Analysis (Mock Data)
     print("2️⃣ Testing Facial Analysis (Mock Data)...")
     try:
-        from facial_detection.enhanced_face_analyzer import EnhancedFaceAnalyzer
-        from confidence_analysis.confidence_classifier import FacialMetrics
+        from src.facial_detection.enhanced_face_analyzer import EnhancedFaceAnalyzer
+        from src.confidence_analysis.confidence_classifier import FacialMetrics
         
         # Create mock facial metrics
         facial_metrics = FacialMetrics(
@@ -81,7 +81,7 @@ def test_core_components():
     # Test 3: Speech Analysis (Mock Data)
     print("3️⃣ Testing Speech Analysis (Mock Data)...")
     try:
-        from confidence_analysis.confidence_classifier import SpeechMetrics
+        from src.confidence_analysis.confidence_classifier import SpeechMetrics
         
         # Create mock speech metrics
         speech_metrics = SpeechMetrics(
@@ -105,7 +105,7 @@ def test_core_components():
     # Test 4: Confidence Classification
     print("4️⃣ Testing Confidence Classification...")
     try:
-        from confidence_analysis.confidence_classifier import ConfidenceClassifier
+        from src.confidence_analysis.confidence_classifier import ConfidenceClassifier
         
         classifier = ConfidenceClassifier(use_advanced_sentiment=True)
         
@@ -131,7 +131,7 @@ def test_core_components():
     # Test 5: Whisper ASR
     print("5️⃣ Testing Whisper ASR...")
     try:
-        from transcription.whisper_asr import WhisperASR
+        from src.transcription.whisper_asr import WhisperASR
         
         whisper_asr = WhisperASR(model_size="tiny")  # Use tiny model for faster testing
         print("   → Whisper ASR initialized with 'tiny' model")

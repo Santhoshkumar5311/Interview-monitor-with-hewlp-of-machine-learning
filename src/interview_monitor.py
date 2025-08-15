@@ -16,14 +16,14 @@ from datetime import datetime
 sys.path.append(os.path.dirname(__file__))
 
 # Import our modules
-from facial_detection.video_capture import VideoCapture
-from facial_detection.landmark_detector import FacialLandmarkDetector
-from facial_detection.expression_analyzer import ExpressionAnalyzer
-from confidence_analysis.confidence_classifier import (
+from src.facial_detection.video_capture import VideoCapture
+from src.facial_detection.landmark_detector import FacialLandmarkDetector
+from src.facial_detection.expression_analyzer import ExpressionAnalyzer
+from src.confidence_analysis.confidence_classifier import (
     ConfidenceClassifier, FusionMetrics, FacialMetrics, SpeechMetrics
 )
-from transcription.speech_transcriber import SpeechTranscriber
-from transcription.subtitle_renderer import SubtitleRenderer
+from src.transcription.speech_transcriber import SpeechTranscriber
+from src.transcription.subtitle_renderer import SubtitleRenderer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

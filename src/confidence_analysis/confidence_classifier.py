@@ -6,15 +6,15 @@ Integrates facial expressions, speech characteristics, and advanced sentiment an
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Any
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime, timedelta
 import json
 
 # Import our modules
-from .sentiment_analyzer import SentimentAnalyzer
-from .speech_analyzer import SpeechAnalyzer
-from .advanced_sentiment_analyzer import AdvancedSentimentAnalyzer, AdvancedSentimentResult
+from src.confidence_analysis.sentiment_analyzer import SentimentAnalyzer
+from src.confidence_analysis.speech_analyzer import SpeechAnalyzer
+from src.confidence_analysis.advanced_sentiment_analyzer import AdvancedSentimentAnalyzer, AdvancedSentimentResult
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +47,7 @@ class FacialMetrics:
     head_nod: float         # -1 to 1 (down to up)
     blink_rate: float       # blinks per second
     mouth_open: float       # 0 to 1
+    timestamp: datetime = field(default_factory=datetime.now)
 
 @dataclass
 class SpeechMetrics:
@@ -57,6 +58,7 @@ class SpeechMetrics:
     tone: float            # -1 to 1 (monotone to expressive)
     pause_frequency: float # 0 to 1 (frequent to rare)
     pitch_variation: float # 0 to 1 (monotone to varied)
+    timestamp: datetime = field(default_factory=datetime.now)
 
 @dataclass
 class FusionMetrics:

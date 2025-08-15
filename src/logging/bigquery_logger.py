@@ -542,9 +542,18 @@ class LocalLogger:
         
         logger.info(f"Local logger initialized in {log_dir}")
     
-    def start_session(self, **kwargs) -> SessionInfo:
+    def start_session(self, 
+                     user_id: Optional[str] = None,
+                     interview_type: Optional[str] = None) -> SessionInfo:
         """Start session with local logging"""
-        session_info = SessionInfo(**kwargs)
+        import uuid
+        
+        session_info = SessionInfo(
+            session_id=str(uuid.uuid4()),
+            start_time=datetime.utcnow(),
+            user_id=user_id,
+            interview_type=interview_type
+        )
         
         # Log to local file
         with open(self.sessions_file, 'a') as f:
