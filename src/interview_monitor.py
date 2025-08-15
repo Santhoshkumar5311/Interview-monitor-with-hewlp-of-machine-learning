@@ -1,552 +1,403 @@
 """
-Interview Monitor - Main Application
-Integrates facial detection, confidence analysis, and live transcription
+Enhanced Interview Monitor with Advanced Sentiment Analysis
+Integrates facial detection, speech transcription, and advanced confidence analysis
 """
 
 import cv2
 import numpy as np
 import time
-import threading
 import logging
-from typing import Dict, List, Optional, Tuple
 import os
 import sys
+from typing import Optional, Tuple, Dict, Any
+from datetime import datetime
 
-# Add src to path for relative imports
+# Add current directory to path for imports
 sys.path.append(os.path.dirname(__file__))
 
+# Import our modules
 from facial_detection.video_capture import VideoCapture
 from facial_detection.landmark_detector import FacialLandmarkDetector
 from facial_detection.expression_analyzer import ExpressionAnalyzer
-from confidence_analysis.confidence_classifier import ConfidenceClassifier, ConfidenceMetrics
-from confidence_analysis.sentiment_analyzer import SentimentAnalyzer
-from confidence_analysis.speech_analyzer import SpeechAnalyzer
+from confidence_analysis.confidence_classifier import (
+    ConfidenceClassifier, FusionMetrics, FacialMetrics, SpeechMetrics
+)
 from transcription.speech_transcriber import SpeechTranscriber
-from transcription.subtitle_renderer import SubtitleRenderer, SubtitleStyle
+from transcription.subtitle_renderer import SubtitleRenderer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class InterviewMonitor:
-    """Main interview monitoring system"""
+class EnhancedInterviewMonitor:
+    """Enhanced interview monitor with advanced sentiment analysis and fusion layer"""
     
-    def __init__(self, 
-                 enable_transcription: bool = True,
-                 enable_confidence_analysis: bool = True,
-                 subtitle_style: Optional[SubtitleStyle] = None):
-        """
-        Initialize interview monitor
-        
-        Args:
-            enable_transcription: Enable live speech transcription
-            enable_confidence_analysis: Enable confidence analysis
-            subtitle_style: Custom subtitle styling
-        """
-        self.enable_transcription = enable_transcription
-        self.enable_confidence_analysis = enable_confidence_analysis
-        
+    def __init__(self):
+        """Initialize the enhanced interview monitor"""
         # Initialize components
-        self.video_capture = None
-        self.landmark_detector = None
-        self.expression_analyzer = None
-        self.confidence_classifier = None
-        self.sentiment_analyzer = None
-        self.speech_analyzer = None
-        self.speech_transcriber = None
-        self.subtitle_renderer = None
+        self.video_capture = VideoCapture()
+        self.landmark_detector = FacialLandmarkDetector()
+        self.expression_analyzer = ExpressionAnalyzer()
+        self.confidence_classifier = ConfidenceClassifier(use_advanced_sentiment=True)
+        self.speech_transcriber = SpeechTranscriber()
+        self.subtitle_renderer = SubtitleRenderer()
         
         # State variables
         self.is_running = False
-        self.current_frame = None
-        self.current_landmarks = None
-        self.current_expressions = None
-        self.current_confidence = None
-        self.current_transcription = ""
-        
-        # Timing
-        self.start_time = 0.0
         self.frame_count = 0
-        self.fps = 0.0
+        self.start_time = time.time()
+        self.current_transcript = ""
+        self.transcript_history = []
+        self.current_fusion_metrics: Optional[FusionMetrics] = None
         
-        # Initialize all components
-        self._initialize_components(subtitle_style)
+        # Performance tracking
+        self.fps_history = []
+        self.last_fps_update = time.time()
         
-        logger.info("Interview Monitor initialized")
+        # Initialize video capture
+        if not self.video_capture.initialize():
+            raise Exception("Failed to initialize video capture")
+        
+        logger.info("Enhanced Interview Monitor initialized successfully")
     
-    def _initialize_components(self, subtitle_style: Optional[SubtitleStyle]):
-        """Initialize all system components"""
-        try:
-            # 1. Video capture
-            self.video_capture = VideoCapture()
-            if not self.video_capture.initialize():
-                raise Exception("Failed to initialize video capture")
-            logger.info("✓ Video capture initialized")
-            
-            # 2. Facial landmark detection
-            self.landmark_detector = FacialLandmarkDetector()
-            logger.info("✓ Landmark detector initialized")
-            
-            # 3. Expression analysis
-            self.expression_analyzer = ExpressionAnalyzer()
-            logger.info("✓ Expression analyzer initialized")
-            
-            # 4. Confidence analysis (if enabled)
-            if self.enable_confidence_analysis:
-                self.confidence_classifier = ConfidenceClassifier()
-                self.sentiment_analyzer = SentimentAnalyzer()
-                self.speech_analyzer = SpeechAnalyzer()
-                logger.info("✓ Confidence analysis components initialized")
-            
-            # 5. Speech transcription (if enabled)
-            if self.enable_transcription:
-                try:
-                    self.speech_transcriber = SpeechTranscriber()
-                    logger.info("✓ Speech transcriber initialized")
-                except Exception as e:
-                    logger.warning(f"Speech transcription disabled: {e}")
-                    self.enable_transcription = False
-            
-            # 6. Subtitle rendering
-            self.subtitle_renderer = SubtitleRenderer(subtitle_style)
-            logger.info("✓ Subtitle renderer initialized")
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize components: {e}")
-            raise
-    
-    def start_monitoring(self):
-        """Start the interview monitoring system"""
-        if self.is_running:
-            logger.warning("Monitoring already running")
-            return False
-        
-        try:
-            self.is_running = True
-            self.start_time = time.time()
-            self.frame_count = 0
-            
-            # Start transcription if enabled
-            if self.enable_transcription and self.speech_transcriber:
-                self.speech_transcriber.on_transcription_update = self._on_transcription_update
-                self.speech_transcriber.on_transcription_complete = self._on_transcription_complete
-                self.speech_transcriber.start_transcription()
-                logger.info("✓ Transcription started")
-            
-            logger.info("Interview monitoring started")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to start monitoring: {e}")
-            self.is_running = False
-            return False
-    
-    def stop_monitoring(self):
-        """Stop the interview monitoring system"""
-        if not self.is_running:
-            return
-        
-        self.is_running = False
-        
-        # Stop transcription
-        if self.speech_transcriber:
-            self.speech_transcriber.stop_transcription()
-        
-        logger.info("Interview monitoring stopped")
-    
-    def run_monitoring_loop(self):
+    def run(self):
         """Main monitoring loop"""
-        if not self.is_running:
-            logger.error("Monitoring not started")
-            return
-        
-        logger.info("Starting monitoring loop...")
-        logger.info("Controls:")
-        logger.info("- Press 'q' to quit")
-        logger.info("- Press 'c' to calibrate expression analyzer")
-        logger.info("- Press 's' to save current frame")
-        logger.info("- Press 't' to toggle transcription")
-        logger.info("- Press 'h' to show/hide confidence display")
-        
-        show_confidence = True
-        transcription_enabled = self.enable_transcription
+        self.is_running = True
+        logger.info("Starting enhanced interview monitoring...")
         
         try:
             while self.is_running:
-                # Capture frame
-                ret, frame = self.video_capture.read()
-                if not ret:
-                    logger.warning("Failed to capture frame")
-                    continue
-                
-                self.current_frame = frame
-                self.frame_count += 1
-                
-                # Calculate FPS
-                current_time = time.time()
-                elapsed_time = current_time - self.start_time
-                if elapsed_time > 0:
-                    self.fps = self.frame_count / elapsed_time
-                
                 # Process frame
-                processed_frame = self._process_frame(frame, current_time)
-                
-                # Display frame
-                cv2.imshow("Interview Monitor", processed_frame)
+                self._process_frame()
                 
                 # Handle key presses
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('q'):
                     break
-                elif key == ord('c'):
-                    self._calibrate_expression_analyzer()
                 elif key == ord('s'):
-                    self._save_current_frame()
-                elif key == ord('t'):
-                    transcription_enabled = self._toggle_transcription()
+                    self._save_session_data()
                 elif key == ord('h'):
-                    show_confidence = not show_confidence
-                
+                    self._show_help()
+        
         except KeyboardInterrupt:
-            logger.info("Monitoring interrupted by user")
+            logger.info("Monitoring stopped by user")
         finally:
-            self.stop_monitoring()
-            cv2.destroyAllWindows()
+            self._cleanup()
     
-    def _process_frame(self, frame: np.ndarray, current_time: float) -> np.ndarray:
-        """Process a single video frame"""
-        try:
-            # 1. Detect facial landmarks
-            landmarks = self.landmark_detector.detect_landmarks(frame)
-            self.current_landmarks = landmarks
+    def _process_frame(self):
+        """Process a single frame"""
+        # Read frame
+        ret, frame = self.video_capture.read()
+        if not ret:
+            logger.warning("Failed to read frame")
+            return
+        
+        # Update frame count and FPS
+        self.frame_count += 1
+        self._update_fps()
+        
+        # Process facial landmarks and expressions
+        landmarks = self.landmark_detector.detect_landmarks(frame)
+        if landmarks is not None:
+            # Analyze expressions
+            expressions = self.expression_analyzer.analyze_expressions(landmarks)
             
-            if landmarks:
-                # 2. Analyze expressions
-                expressions = self.expression_analyzer.analyze_expressions(landmarks)
-                self.current_expressions = expressions
+            # Create facial metrics for fusion
+            facial_metrics = self._create_facial_metrics(expressions, landmarks)
+            
+            # Process speech transcription
+            transcript_chunk = self.speech_transcriber.get_latest_transcript()
+            if transcript_chunk and transcript_chunk != self.current_transcript:
+                self.current_transcript = transcript_chunk
+                self.transcript_history.append({
+                    'text': transcript_chunk,
+                    'timestamp': datetime.now(),
+                    'duration': 5.0  # Assuming 5-second chunks
+                })
                 
-                # 3. Analyze confidence (if enabled)
-                if self.enable_confidence_analysis:
-                    confidence_metrics = self._analyze_confidence(expressions, landmarks)
-                    self.current_confidence = confidence_metrics
+                # Create speech metrics (mock for now - will be enhanced with pyAudioAnalysis)
+                speech_metrics = self._create_speech_metrics(transcript_chunk)
                 
-                # 4. Landmarks and expressions are processed but not displayed (clean view)
-                # frame = self.landmark_detector.draw_landmarks(frame, landmarks)  # Hidden
-                # frame = self._draw_expression_info(frame, expressions)  # Hidden
+                # Analyze chunk with fusion layer
+                self.current_fusion_metrics = self.confidence_classifier.analyze_chunk(
+                    transcript=transcript_chunk,
+                    facial_metrics=facial_metrics,
+                    speech_metrics=speech_metrics,
+                    chunk_duration=5.0
+                )
                 
-                # 5. Confidence is processed but not displayed in corners (will be shown in bottom box)
-                # if self.enable_confidence_analysis and hasattr(self, 'show_confidence'):
-                #     frame = self._draw_confidence_info(frame, confidence_metrics)  # Hidden
+                logger.info(f"New transcript: {transcript_chunk[:50]}...")
+                logger.info(f"Fusion metrics: Confidence={self.current_fusion_metrics.confidence_level.value}, "
+                           f"Relevance={self.current_fusion_metrics.relevance_level.value}")
             
-            # 6. Render live captions (subtitles)
-            if self.enable_transcription:
-                frame = self.subtitle_renderer.render_subtitle(frame, current_time)
-                frame = self.subtitle_renderer.render_subtitle_history(frame, current_time)
+            # Draw facial landmarks (optional - can be disabled)
+            # self.landmark_detector.draw_landmarks(frame, landmarks)
             
-            # 7. Draw system info
-            frame = self._draw_system_info(frame, current_time)
-            
-            return frame
-            
-        except Exception as e:
-            logger.error(f"Frame processing failed: {e}")
-            return frame
+            # Draw expression analysis (optional - can be disabled)
+            # self._draw_expression_info(frame, expressions)
+        
+        # Render subtitles
+        if self.current_transcript:
+            self.subtitle_renderer.render_subtitle(frame, self.current_transcript)
+            self.subtitle_renderer.render_subtitle_history(frame, self.transcript_history[-3:])
+        
+        # Draw enhanced system info with fusion metrics
+        self._draw_enhanced_system_info(frame)
+        
+        # Display frame
+        cv2.imshow('Enhanced Interview Monitor', frame)
     
-    def _analyze_confidence(self, expressions: Dict, landmarks: Dict) -> Optional[ConfidenceMetrics]:
-        """Analyze overall confidence from expressions and other factors"""
+    def _create_facial_metrics(self, expressions: Dict, landmarks: np.ndarray) -> FacialMetrics:
+        """Create FacialMetrics from expression analysis"""
+        # Extract metrics from expressions
+        smile_intensity = expressions.get('smile', {}).get('intensity', 0.0)
+        frown_intensity = expressions.get('frown', {}).get('intensity', 0.0)
+        eyebrow_raise = expressions.get('raised_eyebrows', {}).get('intensity', 0.0)
+        
+        # Calculate eye contact (simplified - looking at center of frame)
+        # MediaPipe face landmarks: 33-46 for left eye, 362-375 for right eye
         try:
-            if not self.enable_confidence_analysis:
-                return None
+            # Use eye center points from MediaPipe
+            left_eye_center = np.mean(landmarks[33:46], axis=0)
+            right_eye_center = np.mean(landmarks[362:375], axis=0)
+            eye_center = (left_eye_center + right_eye_center) / 2
             
-            # Extract head pose from landmarks
-            head_pose = self._extract_head_pose(landmarks)
-            
-            # Get speech characteristics (placeholder for now)
-            speech_data = {
-                'clear_articulation': 0.7,
-                'steady_pace': 0.8,
-                'appropriate_volume': 0.8
-            }
-            
-            # Get sentiment from transcription
-            sentiment_score = 0.0
-            if self.current_transcription and self.sentiment_analyzer:
-                sentiment_analysis = self.sentiment_analyzer.analyze_sentiment(self.current_transcription)
-                sentiment_score = sentiment_analysis['overall_sentiment']
-            
-            # Classify confidence
-            confidence_metrics = self.confidence_classifier.classify_confidence(
-                expressions, head_pose, speech_data, sentiment_score
-            )
-            
-            return confidence_metrics
-            
-        except Exception as e:
-            logger.error(f"Confidence analysis failed: {e}")
-            return None
+            # Calculate distance from frame center (assuming 640x480 frame)
+            frame_center = np.array([320, 240])  # Center of 640x480 frame
+            distance_from_center = np.linalg.norm(eye_center - frame_center)
+            max_distance = np.linalg.norm(np.array([0, 0]) - frame_center)
+            eye_contact = max(0, 1 - (distance_from_center / max_distance))
+        except (IndexError, ValueError):
+            # Fallback if landmark indexing fails
+            eye_contact = 0.5
+        
+        # Head pose estimation (simplified)
+        head_tilt = 0.0  # Will be enhanced with proper head pose estimation
+        head_nod = 0.0
+        
+        # Blink rate (simplified)
+        blink_rate = 0.3  # Will be enhanced with temporal analysis
+        
+        # Mouth open detection
+        mouth_open = expressions.get('mouth_open', {}).get('intensity', 0.0)
+        
+        return FacialMetrics(
+            smile_intensity=smile_intensity,
+            frown_intensity=frown_intensity,
+            eyebrow_raise=eyebrow_raise,
+            eye_contact=eye_contact,
+            head_tilt=head_tilt,
+            head_nod=head_nod,
+            blink_rate=blink_rate,
+            mouth_open=mouth_open
+        )
     
-    def _extract_head_pose(self, landmarks: Dict) -> Dict:
-        """Extract head pose information from landmarks"""
-        try:
-            # This is a simplified head pose extraction
-            # In a real implementation, you'd use more sophisticated methods
-            
-            if not landmarks.get('head_pose'):
-                return {'pitch': 0.0, 'yaw': 0.0, 'roll': 0.0}
-            
-            # Placeholder head pose calculation
-            head_pose = {
-                'pitch': 0.0,   # Forward/backward tilt
-                'yaw': 0.0,     # Left/right turn
-                'roll': 0.0     # Left/right tilt
-            }
-            
-            return head_pose
-            
-        except Exception as e:
-            logger.error(f"Head pose extraction failed: {e}")
-            return {'pitch': 0.0, 'yaw': 0.0, 'roll': 0.0}
+    def _create_speech_metrics(self, transcript: str) -> SpeechMetrics:
+        """Create SpeechMetrics from transcript (will be enhanced with audio analysis)"""
+        # Mock metrics for now - will be replaced with pyAudioAnalysis
+        word_count = len(transcript.split())
+        
+        # Volume (mock - will come from audio analysis)
+        volume = 0.8
+        
+        # Pace (words per second - simplified)
+        pace = min(1.0, word_count / 15.0)  # Normalize to 15 words per 5 seconds
+        
+        # Clarity (based on word length and complexity)
+        words = transcript.split()
+        avg_word_length = np.mean([len(word) for word in words]) if words else 5.0
+        clarity = max(0.3, 1 - (avg_word_length - 5) / 10)  # 5 letters = optimal
+        
+        # Tone (mock - will come from audio analysis)
+        tone = 0.7
+        
+        # Pause frequency (mock - will come from audio analysis)
+        pause_frequency = 0.2
+        
+        # Pitch variation (mock - will come from audio analysis)
+        pitch_variation = 0.6
+        
+        return SpeechMetrics(
+            volume=volume,
+            pace=pace,
+            clarity=clarity,
+            tone=tone,
+            pause_frequency=pause_frequency,
+            pitch_variation=pitch_variation
+        )
     
-    def _draw_expression_info(self, frame: np.ndarray, expressions: Dict) -> np.ndarray:
-        """Draw expression information on frame"""
-        if not expressions:
-            return frame
-        
-        # Draw expression summary
-        summary = self.expression_analyzer.get_expression_summary(expressions)
-        
-        # Position in top-left corner
-        y_offset = 30
-        cv2.putText(frame, f"Expressions: {summary}", (10, y_offset), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-        
-        return frame
-    
-    def _draw_confidence_info(self, frame: np.ndarray, confidence_metrics: Dict) -> np.ndarray:
-        """Draw confidence information on frame"""
-        if not confidence_metrics:
-            return frame
-        
-        # Draw confidence summary
-        summary = self.confidence_classifier.get_confidence_summary(confidence_metrics)
-        lines = summary.split('\n')
-        
-        # Position in top-right corner
-        x_offset = frame.shape[1] - 300
-        y_offset = 30
-        
-        for i, line in enumerate(lines):
-            cv2.putText(frame, line, (x_offset, y_offset + i * 25), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
-        
-        return frame
-    
-    def _draw_system_info(self, frame: np.ndarray, current_time: float) -> np.ndarray:
-        """Draw system information in a clean bottom box"""
+    def _draw_enhanced_system_info(self, frame: np.ndarray):
+        """Draw enhanced system information with fusion metrics"""
         height, width = frame.shape[:2]
         
-        # Create bottom information box
-        box_height = 80
-        box_y = height - box_height - 10
+        # Create info box at bottom
+        info_height = 120
+        info_y = height - info_height - 10
         
-        # Draw semi-transparent background box
-        overlay = frame.copy()
-        cv2.rectangle(overlay, (10, box_y), (width - 10, height - 10), (0, 0, 0), -1)
-        cv2.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
+        # Draw background box
+        cv2.rectangle(frame, (10, info_y), (width - 10, height - 10), (0, 0, 0), -1)
+        cv2.rectangle(frame, (10, info_y), (width - 10, height - 10), (255, 255, 255), 2)
         
-        # Draw box border
-        cv2.rectangle(frame, (10, box_y), (width - 10, height - 10), (255, 255, 255), 2)
+        # Calculate current FPS
+        current_fps = self._get_current_fps()
         
-        # Calculate text positions
-        text_y = box_y + 25
-        line_height = 20
-        
-        # FPS and Frame info (left side)
-        cv2.putText(frame, f"FPS: {self.fps:.1f}", (20, text_y), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-        cv2.putText(frame, f"Frame: {self.frame_count}", (20, text_y + line_height), 
+        # Basic system info
+        y_offset = info_y + 25
+        cv2.putText(frame, f"FPS: {current_fps:.1f}", (20, y_offset), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         
-        # Transcription status (center)
-        status = "ON" if self.enable_transcription else "OFF"
-        status_color = (0, 255, 0) if self.enable_transcription else (0, 0, 255)
-        cv2.putText(frame, f"Transcription: {status}", (width//2 - 80, text_y), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, status_color, 2)
+        cv2.putText(frame, f"Frame: {self.frame_count}", (120, y_offset), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         
-        # Confidence level (right side)
-        if self.current_confidence:
-            confidence_level = self.current_confidence.confidence_level.value
-            confidence_score = self.current_confidence.overall_confidence
+        # Transcription status
+        trans_status = "Active" if self.current_transcript else "Waiting..."
+        cv2.putText(frame, f"Transcription: {trans_status}", (250, y_offset), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        
+        # Fusion metrics (if available)
+        if self.current_fusion_metrics:
+            y_offset += 30
             
-            # Color code confidence level
-            if confidence_level in ['Very High', 'High']:
-                conf_color = (0, 255, 0)  # Green
-            elif confidence_level in ['Medium']:
-                conf_color = (0, 255, 255)  # Yellow
-            else:
-                conf_color = (0, 0, 255)  # Red
+            # Confidence and Relevance
+            conf_color = self._get_confidence_color(self.current_fusion_metrics.confidence_score)
+            rel_color = self._get_confidence_color(self.current_fusion_metrics.relevance_score)
             
-            cv2.putText(frame, f"Confidence: {confidence_level}", (width - 200, text_y), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, conf_color, 2)
-            cv2.putText(frame, f"Score: {confidence_score:.1f}", (width - 200, text_y + line_height), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, conf_color, 2)
+            cv2.putText(frame, f"Confidence: {self.current_fusion_metrics.confidence_level.value.upper()}", 
+                       (20, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.6, conf_color, 2)
+            
+            cv2.putText(frame, f"Relevance: {self.current_fusion_metrics.relevance_level.value.upper()}", 
+                       (250, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.6, rel_color, 2)
+            
+            # Sentiment and Emotion
+            y_offset += 25
+            sentiment_color = self._get_sentiment_color(self.current_fusion_metrics.sentiment_score)
+            
+            cv2.putText(frame, f"Sentiment: {self.current_fusion_metrics.sentiment_score:.2f}", 
+                       (20, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.6, sentiment_color, 2)
+            
+            cv2.putText(frame, f"Emotion: {self.current_fusion_metrics.emotion_label.upper()}", 
+                       (250, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+            
+            # Toxicity warning (if high)
+            if self.current_fusion_metrics.toxicity_score > 0.5:
+                cv2.putText(frame, "⚠ TOXICITY WARNING", (450, y_offset), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+        
+        # Help text
+        y_offset += 30
+        cv2.putText(frame, "Press 'q' to quit, 's' to save session, 'h' for help", 
+                   (20, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (128, 128, 128), 1)
+    
+    def _get_confidence_color(self, score: float) -> Tuple[int, int, int]:
+        """Get color for confidence/relevance score"""
+        if score < 0.4:
+            return (0, 0, 255)  # Red
+        elif score < 0.6:
+            return (0, 165, 255)  # Orange
+        elif score < 0.8:
+            return (0, 255, 255)  # Yellow
         else:
-            cv2.putText(frame, "Confidence: Analyzing...", (width - 200, text_y), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (128, 128, 128), 2)
-        
-        return frame
+            return (0, 255, 0)  # Green
     
-    def _calibrate_expression_analyzer(self):
-        """Calibrate the expression analyzer"""
-        if self.current_landmarks:
-            success = self.expression_analyzer.calibrate(self.current_landmarks)
-            if success:
-                logger.info("Expression analyzer calibrated successfully")
-            else:
-                logger.warning("Expression analyzer calibration failed")
+    def _get_sentiment_color(self, score: float) -> Tuple[int, int, int]:
+        """Get color for sentiment score"""
+        if score < -0.3:
+            return (0, 0, 255)  # Red (negative)
+        elif score < 0.3:
+            return (255, 255, 255)  # White (neutral)
         else:
-            logger.warning("No landmarks available for calibration")
+            return (0, 255, 0)  # Green (positive)
     
-    def _save_current_frame(self):
-        """Save current frame to file"""
-        if self.current_frame is not None:
-            timestamp = int(time.time())
-            filename = f"interview_frame_{timestamp}.jpg"
-            cv2.imwrite(filename, self.current_frame)
-            logger.info(f"Frame saved as {filename}")
-        else:
-            logger.warning("No frame available to save")
+    def _update_fps(self):
+        """Update FPS calculation"""
+        current_time = time.time()
+        if current_time - self.last_fps_update >= 1.0:  # Update every second
+            fps = self.frame_count / (current_time - self.start_time)
+            self.fps_history.append(fps)
+            if len(self.fps_history) > 10:
+                self.fps_history.pop(0)
+            self.last_fps_update = current_time
     
-    def _toggle_transcription(self) -> bool:
-        """Toggle transcription on/off"""
-        if not self.enable_transcription:
-            logger.info("Transcription not available")
-            return False
-        
-        if self.speech_transcriber.is_transcribing:
-            self.speech_transcriber.stop_transcription()
-            logger.info("Transcription stopped")
-            return False
-        else:
-            self.speech_transcriber.start_transcription()
-            logger.info("Transcription started")
-            return True
+    def _get_current_fps(self) -> float:
+        """Get current FPS"""
+        if self.fps_history:
+            return np.mean(self.fps_history)
+        return 0.0
     
-    def _on_transcription_update(self, text: str):
-        """Callback for transcription updates"""
-        self.current_transcription = text
-        self.subtitle_renderer.update_subtitle(text, is_final=False)
+    def _save_session_data(self):
+        """Save session data and performance log"""
+        try:
+            # Export performance log
+            log_filename = self.confidence_classifier.export_performance_log()
+            
+            # Get session summary
+            summary = self.confidence_classifier.get_session_summary()
+            
+            # Save transcript history
+            transcript_filename = f"transcript_{self.confidence_classifier.session_id}.json"
+            import json
+            with open(transcript_filename, 'w') as f:
+                json.dump(self.transcript_history, f, indent=2, default=str)
+            
+            logger.info(f"Session data saved:")
+            logger.info(f"  - Performance log: {log_filename}")
+            logger.info(f"  - Transcript: {transcript_filename}")
+            logger.info(f"  - Session summary: {summary}")
+            
+        except Exception as e:
+            logger.error(f"Failed to save session data: {e}")
     
-    def _on_transcription_complete(self, transcription_entry: Dict):
-        """Callback for completed transcriptions"""
-        text = transcription_entry['text']
-        self.current_transcription = text
-        self.subtitle_renderer.update_subtitle(text, is_final=True)
-        
-        logger.info(f"Transcription complete: {text}")
-    
-    def cleanup(self):
-        """Clean up all resources"""
-        self.stop_monitoring()
-        
-        if self.video_capture:
-            self.video_capture.release()
-        
-        if self.speech_transcriber:
-            self.speech_transcriber.cleanup()
-        
-        logger.info("Interview Monitor cleaned up")
+    def _show_help(self):
+        """Show help information"""
+        help_text = """
+Enhanced Interview Monitor Help
+==============================
 
-def test_interview_monitor():
-    """Test function for interview monitor"""
-    print("Testing interview monitor...")
+Controls:
+- 'q': Quit monitoring
+- 's': Save session data
+- 'h': Show this help
+
+Features:
+- Real-time facial expression analysis
+- Live speech transcription
+- Advanced sentiment analysis (emotion, toxicity, politeness)
+- Confidence and relevance scoring
+- Fusion layer with EMA smoothing
+- Performance logging and export
+
+Metrics Displayed:
+- Confidence Level: Based on facial expressions, speech, and sentiment
+- Relevance Level: Content relevance and quality
+- Sentiment Score: Emotional tone (-1 to 1)
+- Emotion Label: Primary detected emotion
+- Toxicity Warning: Alerts for harmful content
+- Real-time FPS and frame count
+        """
+        print(help_text)
     
-    try:
-        # Create custom subtitle style
-        subtitle_style = SubtitleStyle(
-            font_scale=1.0,
-            font_color=(255, 255, 0),  # Yellow
-            background_color=(0, 0, 128),  # Dark blue
-            background_opacity=0.8
-        )
+    def _cleanup(self):
+        """Clean up resources"""
+        self.is_running = False
         
-        # Initialize monitor
-        monitor = InterviewMonitor(
-            enable_transcription=True,
-            enable_confidence_analysis=True,
-            subtitle_style=subtitle_style
-        )
-        print("✓ Interview monitor initialized")
+        # Save final session data
+        self._save_session_data()
         
-        # Test component access
-        print(f"✓ Video capture: {monitor.video_capture is not None}")
-        print(f"✓ Landmark detector: {monitor.landmark_detector is not None}")
-        print(f"✓ Expression analyzer: {monitor.expression_analyzer is not None}")
-        print(f"✓ Confidence classifier: {monitor.confidence_classifier is not None}")
-        print(f"✓ Speech transcriber: {monitor.speech_transcriber is not None}")
-        print(f"✓ Subtitle renderer: {monitor.subtitle_renderer is not None}")
+        # Release resources
+        self.video_capture.release()
+        cv2.destroyAllWindows()
         
-        print("\nInterview monitor is ready for use!")
-        print("Note: Google Cloud credentials required for transcription")
-        
-        monitor.cleanup()
-        
-    except Exception as e:
-        print(f"❌ Interview monitor test failed: {e}")
-        print("This is expected if some components are not fully configured")
+        logger.info("Enhanced Interview Monitor cleanup completed")
 
 def main():
-    """Main function to run the live interview monitor"""
-    print("🎬 Launching Live Interview Monitor...")
-    print("=" * 50)
-    print("Features:")
-    print("• Live facial expression tracking")
-    print("• Real-time speech transcription")
-    print("• Confidence level analysis")
-    print("• Live subtitles on video")
-    print("=" * 50)
-    print("\nControls:")
-    print("• Press 'q' to quit")
-    print("• Press 'c' to calibrate expressions")
-    print("• Press 's' to save current frame")
-    print("• Press 't' to toggle transcription")
-    print("• Press 'h' to show/hide confidence display")
-    print("\nStarting in 3 seconds...")
-    
-    import time
-    time.sleep(3)
-    
+    """Main function to run the enhanced interview monitor"""
     try:
-        # Create custom subtitle style
-        subtitle_style = SubtitleStyle(
-            font_scale=1.0,
-            font_color=(255, 255, 0),  # Yellow
-            background_color=(0, 0, 128),  # Dark blue
-            background_opacity=0.8
-        )
-        
-        # Initialize monitor
-        monitor = InterviewMonitor(
-            enable_transcription=True,
-            enable_confidence_analysis=True,
-            subtitle_style=subtitle_style
-        )
-        
-        # Start monitoring
-        if monitor.start_monitoring():
-            # Run the live monitoring loop
-            monitor.run_monitoring_loop()
-        else:
-            print("❌ Failed to start monitoring")
-        
-    except KeyboardInterrupt:
-        print("\n🛑 Interview monitor stopped by user")
+        monitor = EnhancedInterviewMonitor()
+        monitor.run()
     except Exception as e:
-        print(f"❌ Error: {e}")
-    finally:
-        if 'monitor' in locals():
-            monitor.cleanup()
-        print("👋 Interview monitor closed")
+        logger.error(f"Failed to run enhanced interview monitor: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
