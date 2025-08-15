@@ -106,7 +106,7 @@ class EnhancedInterviewMonitor:
             facial_metrics = self._create_facial_metrics(expressions, landmarks)
             
             # Process speech transcription
-            transcript_chunk = self.speech_transcriber.get_latest_transcript()
+            transcript_chunk = self.speech_transcriber.get_latest_transcription()
             if transcript_chunk and transcript_chunk != self.current_transcript:
                 self.current_transcript = transcript_chunk
                 self.transcript_history.append({
@@ -147,27 +147,29 @@ class EnhancedInterviewMonitor:
         # Display frame
         cv2.imshow('Enhanced Interview Monitor', frame)
     
-    def _create_facial_metrics(self, expressions: Dict, landmarks: np.ndarray) -> FacialMetrics:
+    def _create_facial_metrics(self, expressions: Dict, landmarks: Dict) -> FacialMetrics:
         """Create FacialMetrics from expression analysis"""
         # Extract metrics from expressions
         smile_intensity = expressions.get('smile', {}).get('intensity', 0.0)
         frown_intensity = expressions.get('frown', {}).get('intensity', 0.0)
         eyebrow_raise = expressions.get('raised_eyebrows', {}).get('intensity', 0.0)
         
-        # Calculate eye contact (simplified - looking at center of frame)
-        # MediaPipe face landmarks: 33-46 for left eye, 362-375 for right eye
+        # Calculate eye contact using the landmark groups
         try:
-            # Use eye center points from MediaPipe
-            left_eye_center = np.mean(landmarks[33:46], axis=0)
-            right_eye_center = np.mean(landmarks[362:375], axis=0)
-            eye_center = (left_eye_center + right_eye_center) / 2
-            
-            # Calculate distance from frame center (assuming 640x480 frame)
-            frame_center = np.array([320, 240])  # Center of 640x480 frame
-            distance_from_center = np.linalg.norm(eye_center - frame_center)
-            max_distance = np.linalg.norm(np.array([0, 0]) - frame_center)
-            eye_contact = max(0, 1 - (distance_from_center / max_distance))
-        except (IndexError, ValueError):
+            if 'left_eye' in landmarks and 'right_eye' in landmarks:
+                # Calculate center of left and right eyes
+                left_eye_center = np.mean(landmarks['left_eye'], axis=0)
+                right_eye_center = np.mean(landmarks['right_eye'], axis=0)
+                eye_center = (left_eye_center + right_eye_center) / 2
+                
+                # Calculate distance from frame center (assuming 640x480 frame)
+                frame_center = np.array([320, 240])  # Center of 640x480 frame
+                distance_from_center = np.linalg.norm(eye_center[:2] - frame_center)  # Use only x,y coordinates
+                max_distance = np.linalg.norm(np.array([0, 0]) - frame_center)
+                eye_contact = max(0, 1 - (distance_from_center / max_distance))
+            else:
+                eye_contact = 0.5
+        except (IndexError, ValueError, KeyError):
             # Fallback if landmark indexing fails
             eye_contact = 0.5
         

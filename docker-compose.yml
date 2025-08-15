@@ -1,0 +1,164 @@
+version: '3.8'
+
+services:
+  # Main Interview Monitor Service
+  interview-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: interview-monitor
+    ports:
+      - "8000:8000"  # Web interface
+      - "8080:8080"  # API endpoints
+    environment:
+      - PYTHONPATH=/app
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/service-account.json
+      - USE_BIGQUERY=true
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID:-your-project-id}
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./credentials:/app/credentials:ro
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - /dev/video0:/dev/video0  # Webcam access (Linux)
+      - /tmp/.X11-unix:/tmp/.X11-unix  # X11 for GUI (Linux)
+    devices:
+      - /dev/video0:/dev/video0  # Webcam access
+    depends_on:
+      - redis
+    networks:
+      - interview-network
+    restart: unless-stopped
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: interview-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - interview-network
+    restart: unless-stopped
+
+  # PostgreSQL for local data storage (alternative to BigQuery)
+  postgres:
+    image: postgres:15-alpine
+    container_name: interview-postgres
+    environment:
+      - POSTGRES_DB=interview_monitoring
+      - POSTGRES_USER=interview_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - interview-network
+    restart: unless-stopped
+
+  # BigQuery Emulator (for development/testing)
+  bigquery-emulator:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+    container_name: bigquery-emulator
+    command: >
+      bash -c "
+        gcloud beta emulators bigquery start --host-port=0.0.0.0:8086
+      "
+    ports:
+      - "8086:8086"
+    environment:
+      - BIGQUERY_EMULATOR_HOST=0.0.0.0:8086
+    networks:
+      - interview-network
+    restart: unless-stopped
+
+  # Web Interface (optional - if you want a separate web service)
+  web-interface:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: interview-web
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://interview-monitor:8080
+      - NODE_ENV=production
+    depends_on:
+      - interview-monitor
+    networks:
+      - interview-network
+    restart: unless-stopped
+
+  # Monitoring and Logging
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: interview-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - interview-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: interview-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - interview-network
+    restart: unless-stopped
+
+  # ML Model Serving (optional - for heavy models)
+  ml-serving:
+    image: tensorflow/serving:latest
+    container_name: interview-ml-serving
+    ports:
+      - "8501:8501"  # REST API
+      - "8500:8500"  # gRPC
+    volumes:
+      - ./models:/models
+    command: >
+      --model_config_file=/models/models.config
+      --port=8500
+      --rest_api_port=8501
+    networks:
+      - interview-network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  interview-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
